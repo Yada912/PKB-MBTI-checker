@@ -3,7 +3,7 @@
 PsychoNLP adalah aplikasi web interaktif yang mendiagnosis profil kepribadian Myers-Briggs Type Indicator (MBTI) melalui pemrosesan bahasa alami (NLP). Sistem ini menggunakan klasifikator pembelajaran mesin (machine learning) yang dilatih pada unggahan forum online untuk memprediksi preferensi kognitif pengguna di sepanjang empat poros Jungian: Introversion vs. Extroversion, Intuition vs. Sensing, Feeling vs. Thinking, dan Judging vs. Perceiving.
 
 Didesain dengan tema glassmorphic premium, aplikasi ini memprioritaskan Explainable AI (XAI), dengan menampilkan indikator linguistik (kata-kata) secara tepat yang memengaruhi prediksinya serta menyarankan arketipe kepribadian alternatif untuk kasus-kasus yang berada di ambang batas (borderline).
----
+
 
 ## 🌌 System Architecture Flow
 
