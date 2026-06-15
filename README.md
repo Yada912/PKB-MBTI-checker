@@ -1,14 +1,13 @@
-# PsychoNLP: Explainable NLP-Based MBTI Personality Classifier
+# PsychoNLP: Klasifikator Kepribadian MBTI Berbasis NLP yang Dapat Dijelaskan (Explainable)
 
-PsychoNLP is an interactive web application that diagnoses Myers-Briggs Type Indicator (MBTI) personality profiles through natural language processing (NLP). The system uses machine learning classifiers trained on online forum posts to predict a user's cognitive preferences along the four Jungian axes: Introversion vs. Extroversion, Intuition vs. Sensing, Feeling vs. Thinking, and Judging vs. Perceiving.
+PsychoNLP adalah aplikasi web interaktif yang mendiagnosis profil kepribadian Myers-Briggs Type Indicator (MBTI) melalui pemrosesan bahasa alami (NLP). Sistem ini menggunakan klasifikator pembelajaran mesin (machine learning) yang dilatih pada unggahan forum online untuk memprediksi preferensi kognitif pengguna di sepanjang empat poros Jungian: Introversion vs. Extroversion, Intuition vs. Sensing, Feeling vs. Thinking, dan Judging vs. Perceiving.
 
-Designed with a premium glassmorphic theme, the application prioritizes **Explainable AI (XAI)**, showing the exact linguistic markers (words) that influenced its predictions and suggesting alternative personality archetypes for borderline cases.
-
+Didesain dengan tema glassmorphic premium, aplikasi ini memprioritaskan Explainable AI (XAI), dengan menampilkan indikator linguistik (kata-kata) secara tepat yang memengaruhi prediksinya serta menyarankan arketipe kepribadian alternatif untuk kasus-kasus yang berada di ambang batas (borderline).
 ---
 
 ## 🌌 System Architecture Flow
 
-The following diagram illustrates the lifecycle of the system, including dataset preparation, model training, and the runtime web application inference loop.
+Diagram berikut mengilustrasikan siklus hidup sistem, termasuk persiapan dataset, pelatihan model, dan siklus inferensi pada aplikasi web saat dijalankan (runtime).
 
 ```mermaid
 graph LR
@@ -53,7 +52,7 @@ graph LR
 
 ## 🔬 Scientific Methods & Machine Learning Implementation
 
-Building a personality classifier from social media text involves several psycholinguistic challenges. PsychoNLP addresses these using rigorous machine learning methodologies.
+Membangun klasifikator kepribadian dari teks media sosial melibatkan beberapa tantangan psikolinguistik. PsychoNLP mengatasi tantangan ini menggunakan metodologi pembelajaran mesin yang ketat.
 
 ### 1. Data Leakage Mitigation (Keyword Masking & User-Level Splitting)
 *   **Target Keyword Masking (`[MASK]`):** In self-reported personality datasets, users frequently mention MBTI types (e.g., *"As an INFJ, I struggle with..."*). If left in the training data, a model will simply memorize that the token `infj` correlates 100% with the INFJ label. This creates **circular logic/target leakage**, meaning the model fails to learn the underlying style of writing and instead becomes a simple keyword finder. PsychoNLP uses a regular expression compiled at startup (`MASK_REGEX`) to replace all 16 MBTI type mentions (and their plurals) with `[MASK]`.
@@ -100,11 +99,11 @@ Psychological traits are continuous, not discrete binary states. When a user's p
 
 ## 🛠️ File Structure
 
-*   [app.py](file:///d:/UNUD/Kuliah%20Informatika/smt%204/PKB/tugasFinal/app.py): Flask application managing UI rendering, guided mode state, and inference APIs.
-*   [training.py](file:///d:/UNUD/Kuliah%20Informatika/smt%204/PKB/tugasFinal/training.py): Model training pipeline including preprocessing, text chunking, data-splitting, TF-IDF vectorization, evaluation, and serialized model exports.
-*   [templates/index.html](file:///d:/UNUD/Kuliah%20Informatika/smt%204/PKB/tugasFinal/templates/index.html): The interactive dashboard frontend built with Outfit and Space Grotesk typography, featuring a futuristic glassmorphic UI.
-*   [static/style.css](file:///d:/UNUD/Kuliah%20Informatika/smt%204/PKB/tugasFinal/static/style.css): Custom CSS styles for glassmorphism, nebula effects, space backgrounds, responsive layouts, progress indicators, and tag chips.
-*   [static/app.js](file:///d:/UNUD/Kuliah%20Informatika/smt%204/PKB/tugasFinal/static/app.js): Application logic handling dynamic view switching, topic loading, dialogue looping based on confidence scores, and visual dashboard rendering.
+*   [app.py](file:///app.py): Flask application managing UI rendering, guided mode state, and inference APIs.
+*   [training.py](file:///training.py): Model training pipeline including preprocessing, text chunking, data-splitting, TF-IDF vectorization, evaluation, and serialized model exports.
+*   [templates/index.html](file:///templates/index.html): The interactive dashboard frontend built with Outfit and Space Grotesk typography, featuring a futuristic glassmorphic UI.
+*   [static/style.css](file:///static/style.css): Custom CSS styles for glassmorphism, nebula effects, space backgrounds, responsive layouts, progress indicators, and tag chips.
+*   [static/app.js](file:///static/app.js): Application logic handling dynamic view switching, topic loading, dialogue looping based on confidence scores, and visual dashboard rendering.
 
 ---
 
@@ -187,34 +186,34 @@ The evaluation below details how each binary classifier performed on the **10,01
 
 ## 📈 Scientific Analysis Visualizations
 
-After model training, the pipeline generates 6 evaluation plots to analyze the psycholinguistic and machine learning characteristics of the classifiers. The generated graphics are saved in the [static/plots/](file:///d:/UNUD/Kuliah%20Informatika/smt%204/PKB/tugasFinal/static/plots/) directory:
+After model training, the pipeline generates 6 evaluation plots to analyze the psycholinguistic and machine learning characteristics of the classifiers. The generated graphics are saved in the [static/plots/](file:///static/plots/) directory:
 
 ### 1. Word Count Distribution
-*   **File Name:** [mbti_chunk_word_counts.png](file:///d:/UNUD/Kuliah%20Informatika/smt%204/PKB/tugasFinal/static/plots/mbti_chunk_word_counts.png)
+*   **File Name:** [mbti_chunk_word_counts.png](file:///static/plots/mbti_chunk_word_counts.png)
 *   **Purpose:** Verifies the document fragmentation process. It plots a histogram of word counts for both train and test chunks, proving that document lengths are strictly controlled around the target of 256 words to reduce length bias in TF-IDF.
 *   **Visual:** ![Word Count Distribution](static/plots/mbti_chunk_word_counts.png)
 
 ### 2. Dataset Class Distribution
-*   **File Name:** [mbti_class_distribution.png](file:///d:/UNUD/Kuliah%20Informatika/smt%204/PKB/tugasFinal/static/plots/mbti_class_distribution.png)
+*   **File Name:** [mbti_class_distribution.png](file:///static/plots/mbti_class_distribution.png)
 *   **Purpose:** Shows the exact sample counts for each class on all 4 axes in the validation set, visually demonstrating the severe class imbalances (specifically on N/S and I/E).
 *   **Visual:** ![Dataset Class Distribution](static/plots/mbti_class_distribution.png)
 
 ### 3. Receiver Operating Characteristic (ROC) Curves
-*   **File Name:** [mbti_roc_curves.png](file:///d:/UNUD/Kuliah%20Informatika/smt%204/PKB/tugasFinal/static/plots/mbti_roc_curves.png)
+*   **File Name:** [mbti_roc_curves.png](file:///static/plots/mbti_roc_curves.png)
 *   **Purpose:** Evaluates the diagnostic sensitivity (True Positive Rate) against 1 - specificity (False Positive Rate) across all probability thresholds, displaying the AUC value for each model.
 *   **Visual:** ![ROC Curves](static/plots/mbti_roc_curves.png)
 
 ### 4. Precision-Recall Curves
-*   **File Name:** [mbti_precision_recall_curves.png](file:///d:/UNUD/Kuliah%20Informatika/smt%204/PKB/tugasFinal/static/plots/mbti_precision_recall_curves.png)
+*   **File Name:** [mbti_precision_recall_curves.png](file:///static/plots/mbti_precision_recall_curves.png)
 *   **Purpose:** Crucial for evaluating models on imbalanced datasets. It shows precision against recall, highlighting how well the models maintain prediction accuracy even at high coverage rates, plotted alongside class ratio baseline limits.
 *   **Visual:** ![Precision-Recall Curves](static/plots/mbti_precision_recall_curves.png)
 
 ### 5. Normalized Confusion Matrices
-*   **File Name:** [mbti_confusion_matrices.png](file:///d:/UNUD/Kuliah%20Informatika/smt%204/PKB/tugasFinal/static/plots/mbti_confusion_matrices.png)
+*   **File Name:** [mbti_confusion_matrices.png](file:///static/plots/mbti_confusion_matrices.png)
 *   **Purpose:** Displays a 2x2 grid of confusion matrices normalized by row (true class), detailing true negative rates, true positive rates, false positive rates, and false negative rates for each dimension.
 *   **Visual:** ![Confusion Matrices](static/plots/mbti_confusion_matrices.png)
 
 ### 6. Linguistic Feature Coefficient Importance
-*   **File Name:** [mbti_feature_importance.png](file:///d:/UNUD/Kuliah%20Informatika/smt%204/PKB/tugasFinal/static/plots/mbti_feature_importance.png)
+*   **File Name:** [mbti_feature_importance.png](file:///static/plots/mbti_feature_importance.png)
 *   **Purpose:** A horizontal bar chart of the top 10 positive and 10 negative coefficients (features/words) for each of the 4 axes. This acts as a global explainability chart showing the core vocabulary the models associated with each cognitive style.
 *   **Visual:** ![Feature Importance](static/plots/mbti_feature_importance.png)
