@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI MBTI Checker - NLP Personality Analysis</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- CSS stylesheet -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="stars-bg"></div>
+    <div class="nebula-bg"></div>
+
+    <div class="container">
+        <!-- Header -->
+        <header>
+            <div class="logo">
+                <i class="fa-solid fa-brain-circuit brain-icon"></i>
+                <h1>Psycho<span>NLP</span></h1>
+            </div>
+            <p class="subtitle">Explainable NLP-based Myers-Briggs Personality Assessment</p>
+        </header>
+
+        <!-- Main Workspace -->
+        <main class="glass-card main-panel">
+            <!-- Mode Toggle Tabs -->
+            <div class="tabs">
+                <button class="tab-btn active" id="tab-free" onclick="switchMode('free')">
+                    <i class="fa-solid fa-pen-nib"></i> Variant 1: Free Writing (Yap Mode)
+                </button>
+                <button class="tab-btn" id="tab-guided" onclick="switchMode('guided')">
+                    <i class="fa-solid fa-comments"></i> Variant 2: Guided Interactive Mode
+                </button>
+            </div>
+
+            <!-- Panel Contents -->
+            <div class="panel-content">
+                
+                <!-- Variant 1: Free Writing -->
+                <div class="mode-panel active" id="panel-free">
+                    <div class="instructions">
+                        <h3>Express Yourself Freely</h3>
+                        <p>Write an essay, talk about your day, rant, or just yap about whatever is on your mind. The longer you write, the more patterns the NLP model will find! We recommend at least 100-200 words for stable accuracy.</p>
+                    </div>
+                    <form id="form-free" onsubmit="submitFree(event)">
+                        <div class="textarea-container">
+                            <textarea id="text-free" placeholder="Start typing your thoughts here..." oninput="updateWordCount('text-free', 'words-free')"></textarea>
+                            <div class="textarea-footer">
+                                <span class="word-counter"><i class="fa-solid fa-text-width"></i> <span id="words-free">0</span> words</span>
+                                <span class="clean-btn" onclick="clearText('text-free', 'words-free')"><i class="fa-solid fa-trash-can"></i> Clear</span>
+                            </div>
+                        </div>
+                        <button type="submit" class="submit-btn" id="btn-submit-free">
+                            <span class="btn-text">Analyze Personality</span>
+                            <span class="btn-loader"><i class="fa-solid fa-circle-notch fa-spin"></i> Analyzing...</span>
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Variant 2: Guided Interactive Mode -->
+                <div class="mode-panel" id="panel-guided">
+                    <div class="instructions">
+                        <h3>Guided Topic Dialogue</h3>
+                        <p>Our model will present you with structured writing topics. If your response provides a weak or low-confidence linguistic signal, the model will dynamically prompt you with follow-up topics to build up diagnostic certainty.</p>
+                    </div>
+
+                    <!-- Topic Display Card -->
+                    <div class="topic-card">
+                        <div class="topic-tag"><i class="fa-solid fa-lightbulb"></i> Guided Topic Prompt</div>
+                        <h4 id="topic-prompt">Loading topic...</h4>
+                        <div class="dynamic-prompt-badge" id="prompt-badge" style="display: none;">
+                            <i class="fa-solid fa-circle-info"></i> Model confidence is low. Requesting additional input.
+                        </div>
+                    </div>
+
+                    <!-- Step Tracker -->
+                    <div class="steps-tracker">
+                        <div class="step-dot active" id="step-1" title="Topic 1">1</div>
+                        <div class="step-line" id="line-1"></div>
+                        <div class="step-dot" id="step-2" title="Topic 2">2</div>
+                        <div class="step-line" id="line-2"></div>
+                        <div class="step-dot" id="step-3" title="Topic 3">3</div>
+                    </div>
+
+                    <form id="form-guided" onsubmit="submitGuided(event)">
+                        <div class="textarea-container">
+                            <textarea id="text-guided" placeholder="Write your response to the topic here (be descriptive)..." oninput="updateWordCount('text-guided', 'words-guided')"></textarea>
+                            <div class="textarea-footer">
+                                <span class="word-counter"><i class="fa-solid fa-text-width"></i> <span id="words-guided">0</span> words</span>
+                            </div>
+                        </div>
+                        <button type="submit" class="submit-btn" id="btn-submit-guided">
+                            <span class="btn-text">Submit Response</span>
+                            <span class="btn-loader"><i class="fa-solid fa-circle-notch fa-spin"></i> Evaluating...</span>
+                        </button>
+                    </form>
+                </div>
+
+            </div>
+        </main>
+
+        <!-- Loading Overlay -->
+        <div class="loading-overlay" id="loading-overlay">
+            <div class="loader-container">
+                <i class="fa-solid fa-brain-circuit brain-spinner"></i>
+                <h3>Extracting Linguistic Signals</h3>
+                <p>Vectorizing terms and running Logistic Regression models...</p>
+            </div>
+        </div>
+
+        <!-- Error Container -->
+        <div id="error-banner" class="error-banner" style="display: none;">
+            <i class="fa-solid fa-circle-exclamation"></i> <span id="error-message">Error message</span>
+            <button class="close-error" onclick="hideError()">&times;</button>
+        </div>
+
+        <!-- Results Section -->
+        <section id="results" class="results-section" style="display: none;">
+            <div class="results-header">
+                <h2>Personality Diagnosis Dashboard</h2>
+                <button class="reset-btn" onclick="resetApp()"><i class="fa-solid fa-rotate-left"></i> Test Again</button>
+            </div>
+
+            <div class="results-grid">
+                
+                <!-- Main Type Summary -->
+                <div class="glass-card result-card main-type-card">
+                    <div class="card-glow"></div>
+                    <span class="badge">Primary MBTI Type</span>
+                    <h1 id="res-mbti-code">INTJ</h1>
+                    <h3 id="res-mbti-title">The Architect</h3>
+                    <p class="description" id="res-mbti-desc">Strategic and imaginative thinkers...</p>
+                    
+                    <!-- Confidence Rating -->
+                    <div class="confidence-container">
+                        <div class="confidence-label">
+                            <span>Diagnostic Confidence</span>
+                            <span id="res-confidence-val">85%</span>
+                        </div>
+                        <div class="confidence-bar-bg">
+                            <div class="confidence-bar" id="res-confidence-fill" style="width: 85%;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Multiple Types Card -->
+                <div class="glass-card result-card multi-types-card" id="multi-types-container" style="display: none;">
+                    <h3>Alternative Personality Tendencies</h3>
+                    <p class="subtitle">Because your percentages were near 50% on some dimensions, the model identifies these types as highly probable alternatives:</p>
+                    <div class="alternative-types" id="res-alt-list">
+                        <!-- Filled by JS -->
+                    </div>
+                </div>
+
+                <!-- MBTI Trait Breakdown -->
+                <div class="glass-card result-card breakdown-card">
+                    <h3>Trait Dimension Percentages</h3>
+                    <p class="subtitle">Each axis represents opposing styles of mental processing.</p>
+                    
+                    <div class="trait-bars">
+                        <!-- I/E Axis -->
+                        <div class="trait-axis">
+                            <div class="trait-labels">
+                                <span class="trait-name left-label">Introversion (I)</span>
+                                <span class="trait-name right-label">Extroversion (E)</span>
+                            </div>
+                            <div class="progress-container">
+                                <div class="progress-fill left-fill" id="fill-ie-left" style="width: 60%;"></div>
+                                <div class="progress-fill right-fill" id="fill-ie-right" style="width: 40%;"></div>
+                                <div class="center-divider"></div>
+                            </div>
+                            <div class="percentage-labels">
+                                <span id="label-ie-left">60%</span>
+                                <span id="label-ie-right">40%</span>
+                            </div>
+                        </div>
+
+                        <!-- N/S Axis -->
+                        <div class="trait-axis">
+                            <div class="trait-labels">
+                                <span class="trait-name left-label">Intuition (N)</span>
+                                <span class="trait-name right-label">Sensing (S)</span>
+                            </div>
+                            <div class="progress-container">
+                                <div class="progress-fill left-fill" id="fill-ns-left" style="width: 70%;"></div>
+                                <div class="progress-fill right-fill" id="fill-ns-right" style="width: 30%;"></div>
+                                <div class="center-divider"></div>
+                            </div>
+                            <div class="percentage-labels">
+                                <span id="label-ns-left">70%</span>
+                                <span id="label-ns-right">30%</span>
+                            </div>
+                        </div>
+
+                        <!-- F/T Axis -->
+                        <div class="trait-axis">
+                            <div class="trait-labels">
+                                <span class="trait-name left-label">Feeling (F)</span>
+                                <span class="trait-name right-label">Thinking (T)</span>
+                            </div>
+                            <div class="progress-container">
+                                <div class="progress-fill left-fill" id="fill-ft-left" style="width: 35%;"></div>
+                                <div class="progress-fill right-fill" id="fill-ft-right" style="width: 65%;"></div>
+                                <div class="center-divider"></div>
+                            </div>
+                            <div class="percentage-labels">
+                                <span id="label-ft-left">35%</span>
+                                <span id="label-ft-right">65%</span>
+                            </div>
+                        </div>
+
+                        <!-- J/P Axis -->
+                        <div class="trait-axis">
+                            <div class="trait-labels">
+                                <span class="trait-name left-label">Judging (J)</span>
+                                <span class="trait-name right-label">Perceiving (P)</span>
+                            </div>
+                            <div class="progress-container">
+                                <div class="progress-fill left-fill" id="fill-jp-left" style="width: 55%;"></div>
+                                <div class="progress-fill right-fill" id="fill-jp-right" style="width: 45%;"></div>
+                                <div class="center-divider"></div>
+                            </div>
+                            <div class="percentage-labels">
+                                <span id="label-jp-left">55%</span>
+                                <span id="label-jp-right">45%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Personality Insights (Strengths/Weaknesses) -->
+                <div class="glass-card result-card details-card" id="details-card">
+                    <h3>Type Archetype Profile</h3>
+                    <div class="mbti-summary-block">
+                        <p id="res-mbti-summary">Description here...</p>
+                    </div>
+                    <div class="strengths-weaknesses">
+                        <div class="sw-column">
+                            <h4><i class="fa-solid fa-circle-check text-success"></i> Core Strengths</h4>
+                            <ul id="res-strengths">
+                                <!-- Filled by JS -->
+                            </ul>
+                        </div>
+                        <div class="sw-column">
+                            <h4><i class="fa-solid fa-circle-xmark text-danger"></i> Blind Spots</h4>
+                            <ul id="res-weaknesses">
+                                <!-- Filled by JS -->
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Linguistic Markers (Explainable AI) -->
+                <div class="glass-card result-card explain-card">
+                    <h3><i class="fa-solid fa-chart-line"></i> Linguistic Explainability Markers</h3>
+                    <p class="subtitle">Based on your input, these specific words contributed most heavily to the model's coefficients for each trait dimension.</p>
+                    
+                    <div class="explain-grids">
+                        <!-- I/E Markers -->
+                        <div class="explain-axis-card">
+                            <h5>Introversion (I) vs Extroversion (E)</h5>
+                            <div class="markers-block">
+                                <div class="pos-markers">
+                                    <span class="marker-lbl font-i">Introvert Cues:</span>
+                                    <div class="tags-container" id="markers-ie-pos"></div>
+                                </div>
+                                <div class="neg-markers">
+                                    <span class="marker-lbl font-e">Extrovert Cues:</span>
+                                    <div class="tags-container" id="markers-ie-neg"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- N/S Markers -->
+                        <div class="explain-axis-card">
+                            <h5>Intuition (N) vs Sensing (S)</h5>
+                            <div class="markers-block">
+                                <div class="pos-markers">
+                                    <span class="marker-lbl font-n">Intuitive Cues:</span>
+                                    <div class="tags-container" id="markers-ns-pos"></div>
+                                </div>
+                                <div class="neg-markers">
+                                    <span class="marker-lbl font-s">Sensing Cues:</span>
+                                    <div class="tags-container" id="markers-ns-neg"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- F/T Markers -->
+                        <div class="explain-axis-card">
+                            <h5>Feeling (F) vs Thinking (T)</h5>
+                            <div class="markers-block">
+                                <div class="pos-markers">
+                                    <span class="marker-lbl font-f">Feeling Cues:</span>
+                                    <div class="tags-container" id="markers-ft-pos"></div>
+                                </div>
+                                <div class="neg-markers">
+                                    <span class="marker-lbl font-t">Thinking Cues:</span>
+                                    <div class="tags-container" id="markers-ft-neg"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- J/P Markers -->
+                        <div class="explain-axis-card">
+                            <h5>Judging (J) vs Perceiving (P)</h5>
+                            <div class="markers-block">
+                                <div class="pos-markers">
+                                    <span class="marker-lbl font-j">Judging Cues:</span>
+                                    <div class="tags-container" id="markers-jp-pos"></div>
+                                </div>
+                                <div class="neg-markers">
+                                    <span class="marker-lbl font-p">Perceiving Cues:</span>
+                                    <div class="tags-container" id="markers-jp-neg"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+    </div>
+
+    <!-- JS Scripts -->
+    <script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>

@@ -1,0 +1,17 @@
+axis,true_label,predicted_label,normalized_percentage
+I/E,Extrovert,Extrovert,0.5091074681238615
+I/E,Extrovert,Introvert,0.49089253187613846
+I/E,Introvert,Extrovert,0.30579357974165494
+I/E,Introvert,Introvert,0.694206420258345
+N/S,Sensing,Sensing,0.4287780187997108
+N/S,Sensing,Intuitive,0.5712219812002892
+N/S,Intuitive,Sensing,0.23505560704355885
+N/S,Intuitive,Intuitive,0.7649443929564411
+F/T,Thinking,Thinking,0.7042316258351893
+F/T,Thinking,Feeling,0.29576837416481067
+F/T,Feeling,Thinking,0.2816289592760181
+F/T,Feeling,Feeling,0.718371040723982
+J/P,Perceiving,Perceiving,0.6171325813307177
+J/P,Perceiving,Judging,0.3828674186692823
+J/P,Judging,Perceiving,0.43432529502308875
+J/P,Judging,Judging,0.5656747049769112
