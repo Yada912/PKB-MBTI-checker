@@ -11,12 +11,15 @@ Designed with a premium glassmorphic theme, the application prioritizes **Explai
 The following diagram illustrates the lifecycle of the system, including dataset preparation, model training, and the runtime web application inference loop.
 
 ```mermaid
-graph TD
+graph LR
+    %% Set the overall flow from Left to Right (puts subgraphs side-by-side)
+    
     %% Dataset Prep and Training Pipeline
-    subgraph Data Pipeline & Training
+    subgraph Data Pipeline & Training [Data Pipeline & Training]
+        direction TB
         A[dataset/mbti_2.csv] --> B[User-Level Train/Test Split]
-        B -->|Train Users| C1[Linguistic Preprocessing & Keyword Masking]
-        B -->|Test Users| C2[Linguistic Preprocessing & Keyword Masking]
+        B -->|Train Users| C1(Linguistic Preprocessing & Keyword Masking)
+        B -->|Test Users| C2(Linguistic Preprocessing & Keyword Masking)
         C1 --> D1[256-Word Text Chunking]
         C2 --> D2[256-Word Text Chunking]
         D1 --> E[TF-IDF Fit & Transform]
@@ -28,21 +31,22 @@ graph TD
     end
 
     %% Inference Web Application
-    subgraph Web App Inference Loop
+    subgraph Web App Inference Loop [Web App Inference Loop]
+        direction TB
         K[User UI Input: Free Text / Guided Prompts] --> L[Flask /api/predict]
-        L --> M[Preprocess & MASK Input Text]
+        L --> M(Preprocess & MASK Input Text)
         M --> N[TF-IDF Transform]
         N --> O[Predict Axis Probabilities]
         O --> P[Calculate Diagnostic Confidence & Word Influence]
-        P --> Q{Confidence < 22% & Guided Step < 3?}
+        P --> Q{"Confidence < 22&#37; & Guided Step < 3?"}
         Q -->|Yes| R[Dynamic Follow-up Topic Trigger]
         R --> K
         Q -->|No| S[Compute Borderline Alternate Types via Cartesian Product]
         S --> T[Render Glassmorphic Diagnosis Dashboard]
     end
-
-    style Data Pipeline & Training fill:#111b2d,stroke:#3b82f6,stroke-width:2px;
-    style Web App Inference Loop fill:#1c102a,stroke:#d946ef,stroke-width:2px;
+    
+    %% Optional: This invisible link ensures they sit nicely side-by-side on Github
+    J ~~~ K
 ```
 
 ---
