@@ -1,0 +1,81 @@
+{
+  "n_eligible_users": 1727,
+  "n_total_test_users": 1735,
+  "config": {
+    "confidence_target": 0.55,
+    "word_count_threshold": 750,
+    "max_guided_steps": 3,
+    "chunk_word_target": 256
+  },
+  "mean_word_count_A": 240.77880718008106,
+  "mean_word_count_B": 685.317892298784,
+  "mean_guided_steps_B": 2.8714533873769543,
+  "exact_match_accuracy_A": 0.2044006948465547,
+  "exact_match_accuracy_B": 0.2709901563404748,
+  "exact_match_gain": 0.06658946149392009,
+  "per_axis": [
+    {
+      "axis": "I/E",
+      "n_users": 1727,
+      "accuracy_A": 0.6462,
+      "accuracy_B": 0.692,
+      "accuracy_gain": 0.0457,
+      "f1_A": 0.7525,
+      "f1_B": 0.785,
+      "f1_gain": 0.0324,
+      "auc_roc_A": 0.6543,
+      "auc_roc_B": 0.7251,
+      "auc_roc_gain": 0.0708,
+      "mean_confidence_A": 0.3164,
+      "mean_confidence_B": 0.3463
+    },
+    {
+      "axis": "N/S",
+      "n_users": 1727,
+      "accuracy_A": 0.7221,
+      "accuracy_B": 0.7614,
+      "accuracy_gain": 0.0394,
+      "f1_A": 0.826,
+      "f1_B": 0.8522,
+      "f1_gain": 0.0263,
+      "auc_roc_A": 0.649,
+      "auc_roc_B": 0.7285,
+      "auc_roc_gain": 0.0795,
+      "mean_confidence_A": 0.3713,
+      "mean_confidence_B": 0.4025
+    },
+    {
+      "axis": "F/T",
+      "n_users": 1727,
+      "accuracy_A": 0.7134,
+      "accuracy_B": 0.7724,
+      "accuracy_gain": 0.0591,
+      "f1_A": 0.7305,
+      "f1_B": 0.793,
+      "f1_gain": 0.0625,
+      "auc_roc_A": 0.7917,
+      "auc_roc_B": 0.8476,
+      "auc_roc_gain": 0.0559,
+      "mean_confidence_A": 0.3944,
+      "mean_confidence_B": 0.4745
+    },
+    {
+      "axis": "J/P",
+      "n_users": 1727,
+      "accuracy_A": 0.597,
+      "accuracy_B": 0.6271,
+      "accuracy_gain": 0.0301,
+      "f1_A": 0.5272,
+      "f1_B": 0.5666,
+      "f1_gain": 0.0394,
+      "auc_roc_A": 0.6243,
+      "auc_roc_B": 0.6723,
+      "auc_roc_gain": 0.048,
+      "mean_confidence_A": 0.2537,
+      "mean_confidence_B": 0.2755
+    }
+  ],
+  "mean_auc_roc_A": 0.6798263775077112,
+  "mean_auc_roc_B": 0.7433642666182244,
+  "mean_auc_roc_gain": 0.06353788911051317
+}
