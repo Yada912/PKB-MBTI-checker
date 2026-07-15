@@ -132,42 +132,125 @@ MBTI_INFO = {
     }
 }
 
-# Guided Topics Pool (Variant 2)
-TOPICS = [
-    "Describe your ideal day from morning to night. What activities make you feel truly energized and content?",
-    "How do you handle conflict or arguments with close friends or family? Walk us through your thought process.",
-    "Describe a book, movie, or personal experience that deeply changed your perspective on life or humanity.",
-    "What is a major goal you have for your future? How do you plan to achieve it, and what motivates you?",
-    "When you are working on a project in a group, what role do you naturally fall into and why?",
-    "Talk about your relationship with solitude. Do you find comfort in being alone, or do you actively seek out social interaction?"
-]
+# Guided Topics Pool (Variant 2) — Axis-Targeted Probing (PKB.docx point 1)
+# Each topic is tagged with the axis it is theoretically best suited to
+# elicit a strong linguistic signal for. Instead of picking topics at
+# random, /api/get-topic now prioritizes the axis with the lowest / most
+# ambiguous confidence (45%-55% zone) reported by the client so far.
+TOPICS_BY_AXIS = {
+    'I/E': [
+        "Talk about your relationship with solitude. Do you find comfort in being alone, or do you actively seek out social interaction?",
+        "Describe how you recharge after a long, demanding week. What does that look like for you?",
+    ],
+    'N/S': [
+        "Describe a book, movie, or personal experience that deeply changed your perspective on life or humanity.",
+        "When you learn something new, do you focus more on concrete facts and details, or on the bigger patterns and possibilities behind them?",
+    ],
+    'F/T': [
+        "How do you handle conflict or arguments with close friends or family? Walk us through your thought process.",
+        "Describe a difficult decision you made recently. What mattered most to you when weighing your options?",
+    ],
+    'J/P': [
+        "What is a major goal you have for your future? How do you plan to achieve it, and what motivates you?",
+        "How do you handle sudden, unplanned changes to your schedule or plans?",
+    ],
+    'GENERAL': [
+        "Describe your ideal day from morning to night. What activities make you feel truly energized and content?",
+        "When you are working on a project in a group, what role do you naturally fall into and why?",
+    ],
+}
+TOPICS = [t for topics in TOPICS_BY_AXIS.values() for t in topics]  # flat pool (kept for backward-compat)
 
 # MBTI types list for regex masking
 MBTI_TYPES = [
     'infj', 'enfp', 'intj', 'entp', 'intp', 'infp', 'entj', 'enfj',
     'isfj', 'istj', 'isfp', 'istp', 'estp', 'esfp', 'estj', 'esfj'
 ]
-MASK_REGEX = re.compile(r'\b(' + '|'.join(MBTI_TYPES) + r')s?\b', re.IGNORECASE)
+
+# Expanded jargon masking (PKB.docx point 4): also mask cognitive-function
+# shorthand (Ni/Ne/Fi/Fe/Ti/Te/Si/Se) and Enneagram notation, since users
+# on personality forums frequently discuss the *theory itself*, which
+# would otherwise leak the target label indirectly (self-reference bias).
+COGNITIVE_FUNCTIONS = ['ni', 'ne', 'si', 'se', 'ti', 'te', 'fi', 'fe']
+ENNEAGRAM_TERMS = [
+    'enneagram', r'\d w\d', r'\dw\d', 'tritype', 'instinctual variant',
+    'so sx', 'sx so', 'sp sx', 'sx sp', 'sp so', 'so sp'
+]
+MBTI_JARGON_WORDS = ['mbti', 'myers briggs', 'myers-briggs', 'cognitive function', 'cognitive functions']
+
+_type_pattern = r'\b(' + '|'.join(MBTI_TYPES) + r')s?\b'
+_cogfunc_pattern = r'\b(' + '|'.join(COGNITIVE_FUNCTIONS) + r')\b'
+_enneagram_pattern = r'\b(' + '|'.join(ENNEAGRAM_TERMS) + r')\b'
+_jargon_pattern = r'\b(' + '|'.join(re.escape(w) for w in MBTI_JARGON_WORDS) + r')\b'
+
+MASK_REGEX = re.compile(
+    '|'.join([_type_pattern, _cogfunc_pattern, _enneagram_pattern, _jargon_pattern]),
+    re.IGNORECASE
+)
+
+# Word-count accumulation target for Scenario B / Curated Guided Essay
+# (PKB.docx point 2). Empirically validated in evaluate_kasus2.py: pushing
+# accumulated input toward ~750-800 words materially raises AUC-ROC and
+# exact-match accuracy versus a single ~256-word essay.
+WORD_COUNT_THRESHOLD = 750
+DEFAULT_MAX_GUIDED_STEPS = 3  # user-configurable ceiling on follow-up prompts
 
 def preprocess_text(text):
     """Clean and mask input text in the same way as training preprocessing"""
     # Remove URLs
     text = re.sub(r'https?://\S+|www\.\S+', '', text)
-    # Mask explicit type names
+    # Mask explicit type names + personality-theory jargon
     text = MASK_REGEX.sub('[MASK]', text)
     # Clean spacing and tags
     text = re.sub(r'<[^>]+>', '', text)
     text = re.sub(r'\s+', ' ', text).strip()
     return text.lower()
 
+def pick_axis_targeted_topic(trait_percentages=None, used_topics=None):
+    """Axis-Targeted Probing (PKB.docx point 1).
+
+    Given the trait percentages returned by a previous /api/predict call,
+    find the axis whose probability is closest to the 50% decision
+    boundary (i.e. lowest |p - 50|, the most ambiguous / lowest-confidence
+    axis) and return a topic from that axis's pool, favoring one not yet
+    asked. Falls back to a random general topic when no prior prediction
+    is available (first question of the session).
+    """
+    used_topics = used_topics or []
+    if not trait_percentages:
+        pool = TOPICS_BY_AXIS['GENERAL']
+        candidates = [t for t in pool if t not in used_topics] or pool
+        return random.choice(candidates)
+
+    # Find axis with the smallest distance to the 50% ambiguity boundary
+    weakest_axis, weakest_distance = None, 101.0
+    for trait, info in trait_percentages.items():
+        distance = abs(info.get('pos_percent', 50.0) - 50.0)
+        if distance < weakest_distance:
+            weakest_distance = distance
+            weakest_axis = trait
+
+    pool = TOPICS_BY_AXIS.get(weakest_axis, TOPICS_BY_AXIS['GENERAL'])
+    candidates = [t for t in pool if t not in used_topics] or pool
+    return random.choice(candidates)
+
 @app.route('/')
 def home():
     return render_template("index.html")
 
-@app.route('/api/get-topic', methods=['GET'])
+@app.route('/api/get-topic', methods=['GET', 'POST'])
 def get_topic():
-    # Return a random topic from the pool
-    topic = random.choice(TOPICS)
+    """Return a guided topic. If POSTed with the previous prediction's
+    trait_percentages, prioritizes the axis closest to the 45%-55%
+    ambiguity zone (Axis-Targeted Probing) instead of picking randomly."""
+    trait_percentages = None
+    used_topics = []
+    if request.method == 'POST' and request.is_json:
+        payload = request.json or {}
+        trait_percentages = payload.get('trait_percentages')
+        used_topics = payload.get('used_topics', [])
+
+    topic = pick_axis_targeted_topic(trait_percentages, used_topics)
     return jsonify({"topic": topic})
 
 @app.route('/api/predict', methods=['POST'])
@@ -321,8 +404,18 @@ def predict():
             "neg_markers": neg_markers  # associated with E, S, T, P
         }
 
+    # Server-side authoritative "sufficiency" signal (PKB.docx point 2):
+    # the guided loop should stop once the ACCUMULATED word count reaches
+    # the ~750-800 word target, not solely rely on the client-tracked
+    # confidence percentage. The client still applies its own confidence
+    # heuristic on top of this, but `word_count_sufficient` lets the
+    # frontend make a more robust stop/continue decision.
+    word_count_sufficient = word_count >= WORD_COUNT_THRESHOLD
+
     return jsonify({
         "word_count": word_count,
+        "word_count_threshold": WORD_COUNT_THRESHOLD,
+        "word_count_sufficient": word_count_sufficient,
         "primary_type": primary_type,
         "probable_types": probable_types,
         "results_info": results_info,

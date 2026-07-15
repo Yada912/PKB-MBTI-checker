@@ -26,7 +26,32 @@ MBTI_TYPES = [
     'infj', 'enfp', 'intj', 'entp', 'intp', 'infp', 'entj', 'enfj',
     'isfj', 'istj', 'isfp', 'istp', 'estp', 'esfp', 'estj', 'esfj'
 ]
-MASK_REGEX = re.compile(r'\b(' + '|'.join(MBTI_TYPES) + r')s?\b', re.IGNORECASE)
+
+# Expanded jargon masking (PKB.docx point 4 - "Penguatan Masking Regex"):
+# users on personality forums frequently discuss the theory itself using
+# cognitive-function shorthand (Ni, Ne, Fi, Fe, Ti, Te, Si, Se) and
+# Enneagram notation (e.g. "7w6", "tritype", "sx/sp"). If left unmasked,
+# the classifier can learn "the user knows MBTI/Enneagram jargon" instead
+# of "the user's actual personality-linked writing style" -> a subtler
+# form of target leakage / self-reference bias than the 16-type mentions
+# alone.
+COGNITIVE_FUNCTIONS = ['ni', 'ne', 'si', 'se', 'ti', 'te', 'fi', 'fe']
+ENNEAGRAM_TERMS = [
+    'enneagram', r'\d w\d', r'\dw\d', 'tritype', 'instinctual variant',
+    'so sx', 'sx so', 'sp sx', 'sx sp', 'sp so', 'so sp'
+]
+MBTI_JARGON_WORDS = ['mbti', 'myers briggs', 'myers-briggs', 'cognitive function', 'cognitive functions']
+
+_type_pattern = r'\b(' + '|'.join(MBTI_TYPES) + r')s?\b'
+_cogfunc_pattern = r'\b(' + '|'.join(COGNITIVE_FUNCTIONS) + r')\b'
+_enneagram_pattern = r'\b(' + '|'.join(ENNEAGRAM_TERMS) + r')\b'
+_jargon_pattern = r'\b(' + '|'.join(re.escape(w) for w in MBTI_JARGON_WORDS) + r')\b'
+
+MASK_REGEX = re.compile(_type_pattern, re.IGNORECASE)
+MASK_REGEX_EXPANDED = re.compile(
+    '|'.join([_type_pattern, _cogfunc_pattern, _enneagram_pattern, _jargon_pattern]),
+    re.IGNORECASE
+)
 
 def clean_and_mask_text(text):
     """
@@ -36,8 +61,9 @@ def clean_and_mask_text(text):
     # Remove URLs
     text = re.sub(r'https?://\S+|www\.\S+', '', text)
     
-    # Remove MBTI type mentions (e.g. INFJ, ENFPs, intj)
-    text = MASK_REGEX.sub('[MASK]', text)
+    # Remove MBTI type mentions AND broader personality-theory jargon
+    # (cognitive functions, Enneagram notation) to avoid target leakage
+    text = MASK_REGEX_EXPANDED.sub('[MASK]', text)
     
     # Remove HTML-like tags or noise
     text = re.sub(r'<[^>]+>', '', text)
